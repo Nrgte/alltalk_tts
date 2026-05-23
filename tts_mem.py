@@ -52,6 +52,29 @@ import importlib
 import threading
 import subprocess
 import gradio as gr
+# Patch Gradio 4.x/5.x SSRF vulnerability check for local hostnames
+try:
+    import gradio.processing_utils
+    # Patch whitelist (Gradio 4.x uses a set/list for this)
+    whitelist = gradio.processing_utils.PUBLIC_HOSTNAME_WHITELIST
+    for host in ["127.0.0.1", "localhost", "::1"]:
+        if host not in whitelist:
+            if hasattr(whitelist, "append"):
+                whitelist.append(host)
+            elif hasattr(whitelist, "add"):
+                whitelist.add(host)
+    
+    # Patch is_public_ip to allow local requests (needed for redirects in Gradio 5.x)
+    if not hasattr(gradio.processing_utils, "_is_public_ip_patched"):
+        original_is_public_ip = gradio.processing_utils.is_public_ip
+        def patched_is_public_ip(ip):
+            if ip in ["127.0.0.1", "localhost", "::1"]:
+                return True
+            return original_is_public_ip(ip)
+        gradio.processing_utils.is_public_ip = patched_is_public_ip
+        gradio.processing_utils._is_public_ip_patched = True
+except Exception:
+    pass
 from pathlib import Path
 from gradio import routes
 from collections import deque
@@ -922,19 +945,23 @@ def create_gradio_interface():
 
             start_button.click(
                 start_monitoring,
-                outputs=[is_monitoring, start_button, stop_button]
+                outputs=[is_monitoring, start_button, stop_button],
+                show_api=False
             ).then(
                 update_monitor_data,
                 inputs=[is_monitoring],
-                outputs=[queue_length, running_engines, queue_status, engine_status]
+                outputs=[queue_length, running_engines, queue_status, engine_status],
+                show_api=False
             )
 
             stop_button.click(
                 stop_monitoring,
-                outputs=[is_monitoring, start_button, stop_button]
+                outputs=[is_monitoring, start_button, stop_button],
+                show_api=False
             ).then(
                 lambda: ("0", "0", [], []),
-                outputs=[queue_length, running_engines, queue_status, engine_status]
+                outputs=[queue_length, running_engines, queue_status, engine_status],
+                show_api=False
             )
 
             # Auto-refresh every 1 seconds when monitoring is active
@@ -943,7 +970,8 @@ def create_gradio_interface():
                 inputs=[is_monitoring],
                 outputs=[queue_length, running_engines, queue_status, engine_status],
                 every=1,
-                show_progress=False
+                show_progress=False,
+                show_api=False
             )
             
             interface.monitor = monitor  # Attach the MonitoringApp instance to the interface

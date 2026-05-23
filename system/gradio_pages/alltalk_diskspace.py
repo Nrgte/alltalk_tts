@@ -62,7 +62,7 @@ def disk_space_page():
         calculate_button = gr.Button("Calculate Disk Space Usage")
 
         # Define actions for buttons
-        calculate_button.click(calculate_disk_space, outputs=[models_space, finetune_space, voices_space, outputs_space, alltalk_env_space])
+        calculate_button.click(calculate_disk_space, outputs=[models_space, finetune_space, voices_space, outputs_space, alltalk_env_space], show_api=False)
 
 def get_disk_interface():
     return disk_space_page

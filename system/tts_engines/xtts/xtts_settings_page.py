@@ -99,11 +99,11 @@ def xtts_model_update_settings(def_character_voice_gr, def_narrator_voice_gr, lo
 def xtts_model_alltalk_settings(model_config_data):
     features_list = model_config_data['model_capabilties']
     voice_list = xtts_voices_file_list()
-    with gr.Blocks(title="Xtts TTS", analytics_enabled=False) as app:
+    with gr.Tabs():
         with gr.Tab("Default Settings"):
             with gr.Row():
-                lowvram_enabled_gr = gr.Radio(choices={"Enabled": "true", "Disabled": "false"}, label="Low VRAM" if model_config_data["model_capabilties"]["lowvram_capable"] else "Low VRAM N/A", value="Enabled" if model_config_data["settings"]["lowvram_enabled"] else "Disabled", interactive=model_config_data["model_capabilties"]["lowvram_capable"])
-                deepspeed_enabled_gr = gr.Radio(choices={"Enabled": "true", "Disabled": "false"}, label="DeepSpeed Activate" if model_config_data["model_capabilties"]["deepspeed_capable"] else "DeepSpeed N/A", value="Enabled" if model_config_data["settings"]["deepspeed_enabled"] else "Disabled", interactive=model_config_data["model_capabilties"]["deepspeed_capable"])
+                lowvram_enabled_gr = gr.Radio(choices=[("Enabled", "true"), ("Disabled", "false")], label="Low VRAM" if model_config_data["model_capabilties"]["lowvram_capable"] else "Low VRAM N/A", value="true" if model_config_data["settings"]["lowvram_enabled"] else "false", interactive=model_config_data["model_capabilties"]["lowvram_capable"])
+                deepspeed_enabled_gr = gr.Radio(choices=[("Enabled", "true"), ("Disabled", "false")], label="DeepSpeed Activate" if model_config_data["model_capabilties"]["deepspeed_capable"] else "DeepSpeed N/A", value="true" if model_config_data["settings"]["deepspeed_enabled"] else "false", interactive=model_config_data["model_capabilties"]["deepspeed_capable"])
                 temperature_set_gr = gr.Slider(value=float(model_config_data["settings"]["temperature_set"]), minimum=0, maximum=1, step=0.05, label="Temperature" if model_config_data["model_capabilties"]["temperature_capable"] else "Temperature N/A", interactive=model_config_data["model_capabilties"]["temperature_capable"])
                 repetitionpenalty_set_gr = gr.Slider(value=float(model_config_data["settings"]["repetitionpenalty_set"]), minimum=1, maximum=20, step=1, label="Repetition Penalty" if model_config_data["model_capabilties"]["repetitionpenalty_capable"] else "Repetition N/A", interactive=model_config_data["model_capabilties"]["repetitionpenalty_capable"])
                 pitch_set_gr = gr.Slider(value=float(model_config_data["settings"]["pitch_set"]), minimum=-10, maximum=10, step=1, label="Pitch" if model_config_data["model_capabilties"]["pitch_capable"] else "Pitch N/A", interactive=model_config_data["model_capabilties"]["pitch_capable"])
@@ -331,7 +331,7 @@ def xtts_model_alltalk_settings(model_config_data):
                     Additionally, use the RVC pipeline with a matching voice model, however, some samples just never seem to work correctly, so maybe try a different sample. Always remember though, this is an AI model attempting to re-create a voice, so you will never get a 100% match.
                     """)
 
-    return app
+    # return app
 
 ################################
 # REQUIRED CHANGE              #
@@ -353,8 +353,4 @@ def xtts_model_alltalk_settings(model_config_data):
 # After making these changes, this function will create and return the Gradio app for your TTS engine's settings page.
 
 def xtts_at_gradio_settings_page(model_config_data):
-    app = xtts_model_alltalk_settings(model_config_data)
-    return app
-def xtts_at_gradio_settings_page(model_config_data):
-    app = xtts_model_alltalk_settings(model_config_data)
-    return app
+    xtts_model_alltalk_settings(model_config_data)

@@ -1,0 +1,22 @@
+{
+    "engine_loaded": "xtts",
+    "selected_model": "xtts - xttsv2_2.0.2",
+    "engines_available": [
+        {
+            "name": "parler",
+            "selected_model": "parler - parler-tts-large-v1"
+        },
+        {
+            "name": "piper",
+            "selected_model": "piper"
+        },
+        {
+            "name": "vits",
+            "selected_model": "vits - tts_models--en--jenny--jenny"
+        },
+        {
+            "name": "xtts",
+            "selected_model": "xtts - xttsv2_2.0.2"
+        }
+    ]
+}

@@ -24,7 +24,7 @@ warnings.filterwarnings('ignore', message='Trying to detect encoding from a tiny
 ###########################################
 # START-UP # AllTalk allowed startup time #
 ###########################################
-startup_wait_time = 240
+startup_wait_time = 600
 
 # You can change the above setting to a larger number to allow AllTAlk more time to start up. 
 # The default setting is 240 seconds (4 minutes). If its taking longer though, you may have a
@@ -259,6 +259,29 @@ running_on_google_colab = check_google_colab()
 ###############################################################################
 try:
     import gradio as gr
+    # Patch Gradio 4.x/5.x SSRF vulnerability check for local hostnames
+    try:
+        import gradio.processing_utils
+        # Patch whitelist (Gradio 4.x uses a set/list for this)
+        whitelist = gradio.processing_utils.PUBLIC_HOSTNAME_WHITELIST
+        for host in ["127.0.0.1", "localhost", "::1"]:
+            if host not in whitelist:
+                if hasattr(whitelist, "append"):
+                    whitelist.append(host)
+                elif hasattr(whitelist, "add"):
+                    whitelist.add(host)
+        
+        # Patch is_public_ip to allow local requests (needed for redirects in Gradio 5.x)
+        if not hasattr(gradio.processing_utils, "_is_public_ip_patched"):
+            original_is_public_ip = gradio.processing_utils.is_public_ip
+            def patched_is_public_ip(ip):
+                if ip in ["127.0.0.1", "localhost", "::1"]:
+                    return True
+                return original_is_public_ip(ip)
+            gradio.processing_utils.is_public_ip = patched_is_public_ip
+            gradio.processing_utils._is_public_ip_patched = True
+    except Exception:
+        pass
     from modules import chat, shared, ui_chat
     from modules.logging_colors import logger
     from modules.ui import create_refresh_button
@@ -465,7 +488,7 @@ time.sleep(initial_delay)
 start_time = time.time()
 warning_displayed = False
 
-url = f"http://localhost:{params['api_def']['api_port_number']}/api/ready"
+url = f"http://192.168.56.1:{params['api_def']['api_port_number']}/api/ready"
 while time.time() - start_time < timeout:
     try:
         response = requests.get(url)
@@ -1136,19 +1159,19 @@ def tgwui_update_dropdowns():
     tgwui_handle_ttsmodel_dropdown_change.skip_reload = True  # Debounce tgwui_tts_dropdown_gr and stop it sending a model reload when it is updated.
 
     return (
-        gr.Checkbox(interactive=current_lowvram_capable, value=current_lowvram_enabled),
-        gr.Checkbox(interactive=current_deepspeed_capable, value=current_deepspeed_enabled),
-        gr.Dropdown(choices=current_voices, value=current_character_voice),
-        gr.Dropdown(choices=rvccurrent_voices, value=rvccurrent_character_voice, interactive=True),        
-        gr.Dropdown(choices=current_voices, value=current_narrator_voice),
-        gr.Dropdown(choices=rvccurrent_voices, value=rvccurrent_narrator_voice, interactive=True),        
-        gr.Dropdown(choices=current_models_available, value=current_model_loaded),
-        gr.Dropdown(interactive=current_temperature_capable),
-        gr.Dropdown(interactive=current_repetitionpenalty_capable),
-        gr.Dropdown(interactive=current_languages_capable, label=language_label),
-        gr.Dropdown(interactive=current_generationspeed_capable),
-        gr.Dropdown(interactive=current_pitch_capable),
-        gr.Dropdown(value=current_non_quoted_text_is),
+        gr.update(interactive=current_lowvram_capable, value=current_lowvram_enabled),
+        gr.update(interactive=current_deepspeed_capable, value=current_deepspeed_enabled),
+        gr.update(choices=current_voices, value=current_character_voice),
+        gr.update(choices=rvccurrent_voices, value=rvccurrent_character_voice, interactive=True),        
+        gr.update(choices=current_voices, value=current_narrator_voice),
+        gr.update(choices=rvccurrent_voices, value=rvccurrent_narrator_voice, interactive=True),        
+        gr.update(choices=current_models_available, value=current_model_loaded),
+        gr.update(interactive=current_temperature_capable),
+        gr.update(interactive=current_repetitionpenalty_capable),
+        gr.update(interactive=current_languages_capable, label=language_label),
+        gr.update(interactive=current_generationspeed_capable),
+        gr.update(interactive=current_pitch_capable),
+        gr.update(value=current_non_quoted_text_is),
     )
 
 ###############################################################
@@ -1223,66 +1246,66 @@ def ui():
 
         with gr.Row():
             tgwui_protocol_gr = gr.Dropdown(choices=["http://", "https://"], label="AllTalk Server Protocol", value=alltalk_protocol)
-            tgwui_protocol_gr.change(tgwui_update_alltalk_protocol, tgwui_protocol_gr, None)
+            tgwui_protocol_gr.change(tgwui_update_alltalk_protocol, tgwui_protocol_gr, None, show_api=False)
             tgwui_ip_address_port_gr = gr.Textbox(label="AllTalk Server IP:Port", value=alltalk_ip_port)
-            tgwui_ip_address_port_gr.change(tgwui_update_alltalk_ip_port, tgwui_ip_address_port_gr, None)
+            tgwui_ip_address_port_gr.change(tgwui_update_alltalk_ip_port, tgwui_ip_address_port_gr, None, show_api=False)
             tgwui_refresh_settings_gr = gr.Button("Refresh settings & voices")
-            tgwui_refresh_settings_gr.click(tgwui_update_dropdowns, None, [tgwui_lowvram_enabled_gr, tgwui_deepspeed_enabled_gr, tgwui_character_voice_gr, tgwui_rvc_char_voice_gr, tgwui_narrator_voice_gr, tgwui_rvc_narr_voice_gr, tgwui_tts_dropdown_gr, tgwui_temperature_set_gr, tgwui_repetitionpenalty_set_gr, tgwui_language_gr, tgwui_generationspeed_set_gr, tgwui_pitch_set_gr, tgwui_non_quoted_text_is_gr])
+            tgwui_refresh_settings_gr.click(tgwui_update_dropdowns, None, [tgwui_lowvram_enabled_gr, tgwui_deepspeed_enabled_gr, tgwui_character_voice_gr, tgwui_rvc_char_voice_gr, tgwui_narrator_voice_gr, tgwui_rvc_narr_voice_gr, tgwui_tts_dropdown_gr, tgwui_temperature_set_gr, tgwui_repetitionpenalty_set_gr, tgwui_language_gr, tgwui_generationspeed_set_gr, tgwui_pitch_set_gr, tgwui_non_quoted_text_is_gr], show_api=False)
 
         with gr.Row():
             tgwui_convert_gr = gr.Button("Remove old TTS audio and leave only message texts")
             tgwui_convert_cancel_gr = gr.Button("Cancel", visible=False)
             tgwui_convert_confirm_gr = gr.Button("Confirm (cannot be undone)", variant="stop", visible=False)
             tgwui_stop_generation_gr = gr.Button("Stop current TTS generation")
-            tgwui_stop_generation_gr.click(stop_generate_tts, None, None,)
+            tgwui_stop_generation_gr.click(stop_generate_tts, None, None, show_api=False)
 
     # Convert history with confirmation
     convert_arr = [tgwui_convert_confirm_gr, tgwui_convert_gr, tgwui_convert_cancel_gr]
-    tgwui_convert_gr.click(lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=True),], None, convert_arr,)
-    tgwui_convert_confirm_gr.click(lambda: [ gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),], None, convert_arr,
-                          ).then(remove_tts_from_history, gradio("history"), gradio("history")
-                                 ).then(chat.save_history, gradio("history", "unique_id", "character_menu", "mode"), None,
-                                        ).then(chat.redraw_html, gradio(ui_chat.reload_arr), gradio("display"))
-    tgwui_convert_cancel_gr.click(lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),], None, convert_arr,)
+    tgwui_convert_gr.click(lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=True),], None, convert_arr, show_api=False)
+    tgwui_convert_confirm_gr.click(lambda: [ gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),], None, convert_arr, show_api=False
+                          ).then(remove_tts_from_history, gradio("history"), gradio("history"), show_api=False
+                                 ).then(chat.save_history, gradio("history", "unique_id", "character_menu", "mode"), None, show_api=False
+                                        ).then(chat.redraw_html, gradio(ui_chat.reload_arr), gradio("display"), show_api=False)
+    tgwui_convert_cancel_gr.click(lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),], None, convert_arr, show_api=False)
 
     # Toggle message text in history
-    tgwui_show_text_gr.change(lambda x: params["tgwui"].update({"tgwui_show_text": x}), tgwui_show_text_gr, None
-                     ).then(toggle_text_in_history, gradio("history"), gradio("history")
-                            ).then(chat.save_history, gradio("history", "unique_id", "character_menu", "mode"), None,
-                                   ).then(chat.redraw_html, gradio(ui_chat.reload_arr), gradio("display"))
+    tgwui_show_text_gr.change(lambda x: params["tgwui"].update({"tgwui_show_text": x}), tgwui_show_text_gr, None, show_api=False
+                     ).then(toggle_text_in_history, gradio("history"), gradio("history"), show_api=False
+                            ).then(chat.save_history, gradio("history", "unique_id", "character_menu", "mode"), None, show_api=False
+                                   ).then(chat.redraw_html, gradio(ui_chat.reload_arr), gradio("display"), show_api=False)
 
     # Event functions to update the parameters in the backend
-    tgwui_activate_tts_gr.change(lambda x: params["tgwui"].update({"tgwui_activate_tts": x}), tgwui_activate_tts_gr, None)
-    tgwui_autoplay_gr.change(lambda x: params["tgwui"].update({"tgwui_autoplay_tts": x}), tgwui_autoplay_gr, None)
-    tgwui_lowvram_enabled_gr.change(lambda x: params["tgwui"].update({"tgwui_lowvram_enabled": x}), tgwui_lowvram_enabled_gr, None)
-    tgwui_lowvram_enabled_gr.change(lambda x: send_lowvram_request(x), tgwui_lowvram_enabled_gr, tgwui_lowvram_enabled_play_gr, None)
+    tgwui_activate_tts_gr.change(lambda x: params["tgwui"].update({"tgwui_activate_tts": x}), tgwui_activate_tts_gr, None, show_api=False)
+    tgwui_autoplay_gr.change(lambda x: params["tgwui"].update({"tgwui_autoplay_tts": x}), tgwui_autoplay_gr, None, show_api=False)
+    tgwui_lowvram_enabled_gr.change(lambda x: params["tgwui"].update({"tgwui_lowvram_enabled": x}), tgwui_lowvram_enabled_gr, None, show_api=False)
+    tgwui_lowvram_enabled_gr.change(lambda x: send_lowvram_request(x), tgwui_lowvram_enabled_gr, tgwui_lowvram_enabled_play_gr, show_api=False)
 
     # Trigger the send_reload_request function when the dropdown value changes
-    tgwui_tts_dropdown_gr.change(tgwui_handle_ttsmodel_dropdown_change, tgwui_tts_dropdown_gr, None)
+    tgwui_tts_dropdown_gr.change(tgwui_handle_ttsmodel_dropdown_change, tgwui_tts_dropdown_gr, None, show_api=False)
 
-    tgwui_deepspeed_enabled_gr.change(lambda x: params["tgwui"].update({"tgwui_deepspeed_enabled": x}), tgwui_deepspeed_enabled_gr, None)
-    tgwui_deepspeed_enabled_gr.change(send_deepspeed_request, tgwui_deepspeed_enabled_gr, tgwui_deepspeed_enabled_play_gr, None)
-    tgwui_character_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_character_voice": x}), tgwui_character_voice_gr, None)
-    tgwui_language_gr.change(lambda x: params["tgwui"].update({"tgwui_language": x}), tgwui_language_gr, None)
+    tgwui_deepspeed_enabled_gr.change(lambda x: params["tgwui"].update({"tgwui_deepspeed_enabled": x}), tgwui_deepspeed_enabled_gr, None, show_api=False)
+    tgwui_deepspeed_enabled_gr.change(send_deepspeed_request, tgwui_deepspeed_enabled_gr, tgwui_deepspeed_enabled_play_gr, show_api=False)
+    tgwui_character_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_character_voice": x}), tgwui_character_voice_gr, None, show_api=False)
+    tgwui_language_gr.change(lambda x: params["tgwui"].update({"tgwui_language": x}), tgwui_language_gr, None, show_api=False)
 
     # TSS Settings
-    tgwui_temperature_set_gr.change(lambda x: params["tgwui"].update({"tgwui_temperature_set": x}), tgwui_temperature_set_gr, None)
-    tgwui_repetitionpenalty_set_gr.change(lambda x: params["tgwui"].update({"tgwui_repetitionpenalty_set": x}), tgwui_repetitionpenalty_set_gr, None)
-    tgwui_generationspeed_set_gr.change(lambda x: params["tgwui"].update({"tgwui_generationspeed_set": x}), tgwui_generationspeed_set_gr, None)
-    tgwui_pitch_set_gr.change(lambda x: params["tgwui"].update({"tgwui_pitch_set": x}), tgwui_pitch_set_gr, None)
+    tgwui_temperature_set_gr.change(lambda x: params["tgwui"].update({"tgwui_temperature_set": x}), tgwui_temperature_set_gr, None, show_api=False)
+    tgwui_repetitionpenalty_set_gr.change(lambda x: params["tgwui"].update({"tgwui_repetitionpenalty_set": x}), tgwui_repetitionpenalty_set_gr, None, show_api=False)
+    tgwui_generationspeed_set_gr.change(lambda x: params["tgwui"].update({"tgwui_generationspeed_set": x}), tgwui_generationspeed_set_gr, None, show_api=False)
+    tgwui_pitch_set_gr.change(lambda x: params["tgwui"].update({"tgwui_pitch_set": x}), tgwui_pitch_set_gr, None, show_api=False)
 
     # Narrator selection actions
-    tgwui_narrator_enabled_gr.change(lambda x: params["tgwui"].update({"tgwui_narrator_enabled": x}), tgwui_narrator_enabled_gr, None)
-    tgwui_non_quoted_text_is_gr.change(lambda x: params["tgwui"].update({"tgwui_non_quoted_text_is": x}), tgwui_non_quoted_text_is_gr, None)
-    tgwui_narrator_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_narrator_voice": x}), tgwui_narrator_voice_gr, None)
+    tgwui_narrator_enabled_gr.change(lambda x: params["tgwui"].update({"tgwui_narrator_enabled": x}), tgwui_narrator_enabled_gr, None, show_api=False)
+    tgwui_non_quoted_text_is_gr.change(lambda x: params["tgwui"].update({"tgwui_non_quoted_text_is": x}), tgwui_non_quoted_text_is_gr, None, show_api=False)
+    tgwui_narrator_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_narrator_voice": x}), tgwui_narrator_voice_gr, None, show_api=False)
     
     # RVC selection actions
-    tgwui_rvc_char_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_rvc_char_voice": x}), tgwui_rvc_char_voice_gr, None)
-    tgwui_rvc_narr_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_rvc_narr_voice": x}), tgwui_rvc_narr_voice_gr, None)
+    tgwui_rvc_char_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_rvc_char_voice": x}), tgwui_rvc_char_voice_gr, None, show_api=False)
+    tgwui_rvc_narr_voice_gr.change(lambda x: params["tgwui"].update({"tgwui_rvc_narr_voice": x}), tgwui_rvc_narr_voice_gr, None, show_api=False)
 
     # Play preview
-    tgwui_preview_text_gr.submit(voice_preview, tgwui_preview_text_gr, tgwui_preview_audio_gr)
-    tgwui_preview_play_gr.click(voice_preview, tgwui_preview_text_gr, tgwui_preview_audio_gr)
+    tgwui_preview_text_gr.submit(voice_preview, tgwui_preview_text_gr, tgwui_preview_audio_gr, show_api=False)
+    tgwui_preview_play_gr.click(voice_preview, tgwui_preview_text_gr, tgwui_preview_audio_gr, show_api=False)
 
 ##################################################################
 #     _    _ _ _____     _ _       ____               _ _        #
@@ -1400,12 +1423,6 @@ if gradio_enabled == True:
     # Finishing Dynamically importing Modules #
     ###########################################
 
-    def confirm(message):
-        return gr.Interface.fn("confirmation", f"""<script>
-            var confirmation = confirm("{message}");
-            gr.Interface.send(confirmation);
-        </script>""")
-
     def save_config_data():
         try:
             # Save the updated JSON data to confignew.json
@@ -1476,18 +1493,18 @@ if gradio_enabled == True:
         if rvccurrent_narrator_voice not in rvccurrent_voices:
             rvccurrent_narrator_voice = rvccurrent_voices[0] if rvccurrent_voices else ""
         return (
-            gr.Dropdown(choices=gen_choices, interactive=True),
-            gr.Dropdown(choices=current_voices, value=current_character_voice, interactive=True),
-            gr.Dropdown(choices=rvccurrent_voices, value=rvccurrent_character_voice, interactive=True),
-            gr.Dropdown(choices=current_voices, value=current_narrator_voice, interactive=True),
-            gr.Dropdown(choices=rvccurrent_voices, value=rvccurrent_narrator_voice, interactive=True),
-            gr.Slider(interactive=current_generationspeed_capable),
-            gr.Slider(interactive=current_pitch_capable),
-            gr.Slider(interactive=current_temperature_capable),
-            gr.Slider(interactive=current_repetitionpenalty_capable),
-            gr.Dropdown(interactive=current_languages_capable, label=language_label),
-            gr.Dropdown(choices=models_available, value=current_model_loaded),
-            gr.Dropdown(choices=engines_available, value=current_engine_loaded),
+            gr.update(choices=gen_choices, interactive=True),
+            gr.update(choices=current_voices, value=current_character_voice, interactive=True),
+            gr.update(choices=rvccurrent_voices, value=rvccurrent_character_voice, interactive=True),
+            gr.update(choices=current_voices, value=current_narrator_voice, interactive=True),
+            gr.update(choices=rvccurrent_voices, value=rvccurrent_narrator_voice, interactive=True),
+            gr.update(interactive=current_generationspeed_capable),
+            gr.update(interactive=current_pitch_capable),
+            gr.update(interactive=current_temperature_capable),
+            gr.update(interactive=current_repetitionpenalty_capable),
+            gr.update(interactive=current_languages_capable, label=language_label),
+            gr.update(choices=models_available, value=current_model_loaded),
+            gr.update(choices=engines_available, value=current_engine_loaded),
         ) 
    
     ######################################################################################
@@ -1882,6 +1899,7 @@ if gradio_enabled == True:
                                     docker_url = f"http://localhost:{params['api_def']['api_port_number']}"
                                     docker_upd = gr.Textbox(label="Docker IP/URL for API Address", value=docker_url, show_label=False)
                                     update_docker_btn = gr.Button("Update Docker IP/URL API Address")
+                                    docker_status = gr.Text(label="Status", visible=False)
                                 def update_docker_address(new_url):
                                     global docker_url  # Need this to modify the global variable
                                     docker_url = new_url
@@ -1889,7 +1907,8 @@ if gradio_enabled == True:
                                 update_docker_btn.click(
                                     fn=update_docker_address,
                                     inputs=[docker_upd],
-                                    outputs=[gr.Text(label="Status")]
+                                    outputs=[docker_status],
+                                    show_api=False
                                 )
                     with gr.Row():
                         with gr.Group():
@@ -1936,8 +1955,8 @@ if gradio_enabled == True:
                             domain_name_output = gr.Textbox(label="Domain Name", visible=False)
                             def on_load(request: gr.Request):
                                 domain_name = get_domain_name(request)
-                                domain_name_output.value = domain_name
-                            app.load(on_load, inputs=None, outputs=None)
+                                return domain_name
+                            app.load(on_load, inputs=None, outputs=domain_name_output)
                             if at_settings["streaming_capable"]:
                                 gen_choices = [("Standard", "false"), ("Streaming (Disable Narrator)", "true")]
                             else:
@@ -1947,16 +1966,16 @@ if gradio_enabled == True:
                             gen_lang = gr.Dropdown(value=params['api_def']['api_language'], choices=["ar", "zh", "cs", "nl", "en", "fr", "de", "hi", "hu", "it", "ja", "ko", "pl", "pt", "ru", "es", "tr"], label="Languages" if at_settings["languages_capable"] else "Model not multi language", interactive=at_settings["languages_capable"])
                             gen_narren = gr.Dropdown(choices=[("Enabled", "true"), ("Disabled", "false"), ("Enabled (Silent)", "silent")], label="Narrator Enabled/Disabled", value="true" if params['api_def']['api_narrator_enabled'] == "true" else ("silent" if params['api_def']['api_narrator_enabled'] == "silent" else "false"))                   
                             gen_textni = gr.Dropdown(choices=[("Character", "character"), ("Narrator", "narrator"), ("Silent", "silent")], label="Narrator Text-not-inside", value=params['api_def']['api_text_not_inside'])
-                            gen_stopcurrentgen = gr.Dropdown(choices={("Stop", "true"), ("Dont stop", "false")}, label="Auto-Stop current generation", value="true")  
+                            gen_stopcurrentgen = gr.Dropdown(choices=[("Stop", "true"), ("Dont stop", "false")], label="Auto-Stop current generation", value="true")  
                         with gr.Row():
                             gen_filter = gr.Dropdown(value=params['api_def']['api_text_filtering'], label="Text filtering", choices=["none", "standard", "html"])
-                            gen_filetime = gr.Dropdown(choices={("Timestamp files", "true"), ("Dont Timestamp (Over-write)", "false")}, label="Include Timestamp", value="true" if params['api_def']['api_output_file_timestamp'] else "false")                   
-                            gen_autopl = gr.Dropdown(choices={("Play locally", "false"), ("Play remotely", "true")}, label="Play Locally or Remotely", value="true" if params['api_def']['api_autoplay'] else "false")
+                            gen_filetime = gr.Dropdown(choices=[("Timestamp files", "true"), ("Dont Timestamp (Over-write)", "false")], label="Include Timestamp", value="true" if params['api_def']['api_output_file_timestamp'] else "false")                   
+                            gen_autopl = gr.Dropdown(choices=[("Play locally", "false"), ("Play remotely", "true")], label="Play Locally or Remotely", value="true" if params['api_def']['api_autoplay'] else "false")
                             gen_autoplvol = gr.Dropdown(choices=[str(i / 10) for i in range(11)], value=str(params['api_def']['api_autoplay_volume']), label="Remote play volume", allow_custom_value=True)                   
                             gen_filen = gr.Textbox(value=params['api_def']['api_output_file_name'], label="Output File Name")
                         with gr.Row():                            
-                            gen_speed = gr.Slider(minimum=0.25, maximum=2.00, step=0.25, label="Speed", value="1.00", interactive=at_settings["generationspeed_capable"])
-                            gen_pitch = gr.Slider(minimum=-10, maximum=10, step=1, label="Pitch", value="1", interactive=at_settings["pitch_capable"])
+                            gen_speed = gr.Slider(minimum=0.25, maximum=2.00, step=0.25, label="Speed", value=1.00, interactive=at_settings["generationspeed_capable"])
+                            gen_pitch = gr.Slider(minimum=-10, maximum=10, step=1, label="Pitch", value=1, interactive=at_settings["pitch_capable"])
                             gen_temperature = gr.Slider(minimum=0.05, maximum=1.0, step=0.05, label="Temperature", value=0.75, interactive=at_settings["temperature_capable"])
                             gen_repetition = gr.Slider(minimum=1.0, maximum=20.0, step=1.0, label="Repetition Penalty", value=10, interactive=at_settings["repetitionpenalty_capable"])                        
                     #Toggle narrator selection on Streaming select
@@ -1988,9 +2007,9 @@ if gradio_enabled == True:
                                 // localStorage.setItem('darkMode', 'enabled');
                             }
                         }""", show_api=False)
-                    refresh_button.click(at_update_dropdowns, None, [gen_stream, gen_char, rvcgen_char, gen_narr, rvcgen_narr, gen_speed, gen_pitch, gen_temperature, gen_repetition, gen_lang, model_choices_gr, engine_choices])
-                    stop_button.click(stop_generate_tts, inputs=[], outputs=[output_message])
-                    submit_button.click(generate_tts, inputs=[gen_text, gen_char, rvcgen_char, rvcat_default_pitch_gr, gen_narr, rvcgen_narr, rvcat_narrator_pitch_gr, gen_narren, gen_textni, gen_repetition, gen_lang, gen_filter, gen_speed, gen_pitch, gen_autopl, gen_autoplvol, gen_filen, gen_temperature, gen_filetime, gen_stream, gen_stopcurrentgen], outputs=[output_audio, output_message])
+                    refresh_button.click(at_update_dropdowns, None, [gen_stream, gen_char, rvcgen_char, gen_narr, rvcgen_narr, gen_speed, gen_pitch, gen_temperature, gen_repetition, gen_lang, model_choices_gr, engine_choices], show_api=False)
+                    stop_button.click(stop_generate_tts, inputs=[], outputs=[output_message], show_api=False)
+                    submit_button.click(generate_tts, inputs=[gen_text, gen_char, rvcgen_char, rvcat_default_pitch_gr, gen_narr, rvcgen_narr, rvcat_narrator_pitch_gr, gen_narren, gen_textni, gen_repetition, gen_lang, gen_filter, gen_speed, gen_pitch, gen_autopl, gen_autoplvol, gen_filen, gen_temperature, gen_filetime, gen_stream, gen_stopcurrentgen], outputs=[output_audio, output_message], show_api=False)
 
                 if params.get("gradio_pages", {}).get("Generate_Help_page", True):
                     with gr.Tab("Generate Help"):
@@ -2009,6 +2028,7 @@ if gradio_enabled == True:
                                     docker_url = f"http://localhost:{params['api_def']['api_port_number']}"
                                     docker_upd = gr.Textbox(label="Docker IP/URL for API Address", value=docker_url, show_label=False)
                                     update_docker_btn = gr.Button("Update Docker IP/URL API Address")
+                                    docker_status_rvc = gr.Text(label="Status", visible=False)
                                 def update_docker_address(new_url):
                                     global docker_url  # Need this to modify the global variable
                                     docker_url = new_url
@@ -2016,7 +2036,8 @@ if gradio_enabled == True:
                                 update_docker_btn.click(
                                     fn=update_docker_address,
                                     inputs=[docker_upd],
-                                    outputs=[gr.Text(label="Status")]
+                                    outputs=[docker_status_rvc],
+                                    show_api=False
                                 )                        
                     with gr.Row():
                         rvc_voices_dropdown = gr.Dropdown(choices=at_settings["rvcvoices"], label="Select RVC Voice to generate as", value=at_settings["rvcvoices"][0], scale=1)
@@ -2026,7 +2047,7 @@ if gradio_enabled == True:
                         submit_button = gr.Button("Submit to RVC", scale=0)
                     audio_output = gr.Audio(label="Converted Audio")
                     
-                    submit_button.click(fn=voice2rvc, inputs=[audio_input, rvc_voices_dropdown, rvc_pitch_slider, rvc_f0method], outputs=audio_output)
+                    submit_button.click(fn=voice2rvc, inputs=[audio_input, rvc_voices_dropdown, rvc_pitch_slider, rvc_f0method], outputs=audio_output, show_api=False)
             
             if params.get("gradio_pages", {}).get("TTS_Generator_page", True):
                 with gr.Tab("TTS Generator"):
@@ -2041,15 +2062,16 @@ if gradio_enabled == True:
                         gradio_port_number = gr.Number(value=int(params["gradio_port_number"]), label="Gradio Port Number", precision=0)
                         output_folder = gr.Textbox(value=params["output_folder"], label=f"Output Folder name (sub {branding})")
                     with gr.Row():
-                        transcode_audio_format = gr.Dropdown(choices={"Disabled": "disabled", "aac": "aac", "flac": "flac", "mp3": "mp3", "opus": "opus", "wav": "wav"}, label="Audio Transcoding", value=params["transcode_audio_format"])
+                        transcode_audio_format = gr.Dropdown(choices=[("Disabled", "Disabled"), ("aac", "aac"), ("flac", "flac"), ("mp3", "mp3"), ("opus", "opus"), ("wav", "wav")], label="Audio Transcoding", value=params["transcode_audio_format"])
                         with gr.Row():
                             themes_select = gr.Dropdown(loadThemes.get_list(), value=loadThemes.read_json(), label="Gradio Theme Selection", visible=True,)
-                            themes_select.change(fn=loadThemes.select_theme, inputs=[themes_select], outputs=[gr.Textbox(label="Gradio Selection Result")],)
+                            themes_status = gr.Textbox(label="Gradio Selection Result", visible=False)
+                            themes_select.change(fn=loadThemes.select_theme, inputs=[themes_select], outputs=[themes_status], show_api=False)
                     with gr.Row():
                         with gr.Column():
                             gr_debug_tts = gr.CheckboxGroup(choices=debugging_choices, label="Debugging Options list", value=default_values)
                         with gr.Column():
-                            gradio_interface = gr.Dropdown(choices={"Enabled": "true", "Disabled": "false"}, label="Gradio Interface", value="Enabled" if params["gradio_interface"] else "Disabled", info="**WARNING**: This will disable the AllTalk Gradio interface from loading. To re-enable the interface, go to the API address in a web browser and enable it there. http://127.0.0.1:7851/")
+                            gradio_interface = gr.Dropdown(choices=[("Enabled", "true"), ("Disabled", "false")], label="Gradio Interface", value="true" if params["gradio_interface"] else "false", info="**WARNING**: This will disable the AllTalk Gradio interface from loading. To re-enable the interface, go to the API address in a web browser and enable it there. http://127.0.0.1:7851/")
                     gr.Markdown("### Disable Gradio Interface Tabs")  # Adds a title
                     gr.Markdown("Use the checkboxes below to enable or disable individual interface tabs or components.")                    
                     with gr.Group():
@@ -2069,7 +2091,8 @@ if gradio_enabled == True:
                     submit_button.click(
                         update_settings_at, 
                         inputs=[delete_output_wavs, gradio_interface, gradio_port_number, output_folder, api_port_number, gr_debug_tts, transcode_audio_format, generate_help_page, voice2rvc_page, tts_generator_page, tts_engines_settings_page, alltalk_documentation_page, api_documentation_page],
-                        outputs=output_message
+                        outputs=output_message,
+                        show_api=False
                     )
 
                 with gr.Tab("AllTalk API Defaults"):
@@ -2097,7 +2120,7 @@ if gradio_enabled == True:
                             gr.Textbox(value="Sets the default language for text-to-speech if no language is explicitly provided in the request. Default: en", interactive=False,show_label=False, lines=2, scale=4)
                         with gr.Row():
                             api_narrator_enabled = gr.Dropdown(
-                                choices={("Enabled", "true"), ("Disabled", "false"), ("Enabled (Silent)", "silent")},
+                                choices=[("Enabled", "true"), ("Disabled", "false"), ("Enabled (Silent)", "silent")],
                                 label="Narrator Enabled/Disable/Silent",
                                 value=("true" if params['api_def']['api_narrator_enabled'] == "true"
                                     else "false" if params['api_def']['api_narrator_enabled'] == "false"
@@ -2105,16 +2128,16 @@ if gradio_enabled == True:
                             )
                             gr.Textbox(value="Determines whether the narrator functionality is enabled by default when not explicitly specified in the request. Please note, if you set `Enabled` or `Enabled (silent)` as the APi defaults, then all text will go into the narrator function unless `disabled` is sent as part of the TTS generation request, possibly resulting in silenced TTS. Default: Disabled", interactive=False,show_label=False, lines=2, scale=4)
                         with gr.Row():
-                            api_text_not_inside = gr.Dropdown(choices={"character", "narrator", "silent"}, label="Narrator Text-not-inside", value="character" if params['api_def']['api_text_not_inside'] else "narrator")
+                            api_text_not_inside = gr.Dropdown(choices=["character", "narrator", "silent"], label="Narrator Text-not-inside", value="character" if params['api_def']['api_text_not_inside'] else "narrator")
                             gr.Textbox(value="Defines how narrated text is split and processed when not explicitly specified in the request. The available options are 'character' (text is associated with the character) and 'narrator' (text is associated with the narrator). Default: Narrator", interactive=False,show_label=False, lines=2, scale=4)
                         with gr.Row():
                             api_output_file_name = gr.Textbox(value=params['api_def']['api_output_file_name'], label="Output file name")
                             gr.Textbox(value="Specifies the default name for the output file when no filename is provided in the request. Default: myoutputfile", interactive=False,show_label=False, lines=2, scale=4)
                         with gr.Row():
-                            api_output_file_timestamp = gr.Dropdown(choices={"Timestamp files", "Dont Timestamp (Over-write)"}, label="Include Timestamp", value="Timestamp files" if params['api_def']['api_output_file_timestamp'] else "Dont Timestamp (Over-write)")
+                            api_output_file_timestamp = gr.Dropdown(choices=["Timestamp files", "Dont Timestamp (Over-write)"], label="Include Timestamp", value="Timestamp files" if params['api_def']['api_output_file_timestamp'] else "Dont Timestamp (Over-write)")
                             gr.Textbox(value="Determines whether a unique identifier (UUID) timestamp is appended to the generated text-to-speech output file. When enabled, each output file will have a unique timestamp, preventing overwriting of files. When disabled, files with the same name will be overwritten. Default: Timestamp files", interactive=False,show_label=False, lines=2, scale=4)
                         with gr.Row():
-                            api_autoplay = gr.Dropdown(choices={"Play locally", "Play remotely"}, label="Play Locally or Remotely", value="Play remotely" if params['api_def']['api_autoplay'] else "Play locally")
+                            api_autoplay = gr.Dropdown(choices=["Play locally", "Play remotely"], label="Play Locally or Remotely", value="Play remotely" if params['api_def']['api_autoplay'] else "Play locally")
                             gr.Textbox(value="Specifies whether the generated audio should be played locally on the client-side or remotely on the server-side console/terminal. Default: Play locally", interactive=False,show_label=False, lines=2, scale=4)
                         with gr.Row():
                             api_autoplay_volume = gr.Slider(minimum=0.1, maximum=0.9, step=0.1, label="Remote play volume", value=float(params['api_def']['api_autoplay_volume']))
@@ -2168,8 +2191,8 @@ if gradio_enabled == True:
                     if current_narr not in current_voices:
                         current_narr = current_voices[0] if current_voices else ""
                     return (
-                        gr.Dropdown(choices=current_voices, value=current_char, interactive=True),
-                        gr.Dropdown(choices=current_voices, value=current_narr, interactive=True),
+                        gr.update(choices=current_voices, value=current_char, interactive=True),
+                        gr.update(choices=current_voices, value=current_narr, interactive=True),
                     )
 
                 def gr_update_rvc_settings(rvc_enabled, rvc_char_model_file, rvc_narr_model_file, split_audio, autotune, pitch,
@@ -2223,21 +2246,21 @@ if gradio_enabled == True:
                     with gr.Row():
                         update_button = gr.Button("Update RVC Settings")
                         update_output = gr.Textbox(label="Update Status", show_label=False)
-                    rvc_refresh_button.click(rvc_update_dropdowns, None, [rvc_char_model_file_gr, rvc_narr_model_file_gr])
-                    update_button.click(fn=gr_update_rvc_settings, inputs=[rvc_enabled, rvc_char_model_file_gr, rvc_narr_model_file_gr, split_audio, autotune, pitch, filter_radius, index_rate, rms_mix_rate, protect, hop_length, f0method, embedder_model, training_data_size], outputs=[update_output])
+                    rvc_refresh_button.click(rvc_update_dropdowns, None, [rvc_char_model_file_gr, rvc_narr_model_file_gr], show_api=False)
+                    update_button.click(fn=gr_update_rvc_settings, inputs=[rvc_enabled, rvc_char_model_file_gr, rvc_narr_model_file_gr, split_audio, autotune, pitch, filter_radius, index_rate, rms_mix_rate, protect, hop_length, f0method, embedder_model, training_data_size], outputs=[update_output], show_api=False)
         
                 with gr.Tab("Text-generation-webui Settings"):
                     with gr.Row():
-                        activate = gr.Dropdown(choices={"Enabled": "true", "Disabled": "false"}, label="Activate TTS", value="Enabled" if params["tgwui"]["tgwui_activate_tts"] else "Disabled")
-                        autoplay = gr.Dropdown(choices={"Enabled": "true", "Disabled": "false"}, label="Autoplay TTS", value="Enabled" if params["tgwui"]["tgwui_autoplay_tts"] else "Disabled")
-                        show_text = gr.Dropdown(choices={"Enabled": "true", "Disabled": "false"}, label="Show Text", value="Enabled" if params["tgwui"]["tgwui_show_text"] else "Disabled")
+                        activate = gr.Dropdown(choices=[("Enabled", "true"), ("Disabled", "false")], label="Activate TTS", value="true" if params["tgwui"]["tgwui_activate_tts"] else "false")
+                        autoplay = gr.Dropdown(choices=[("Enabled", "true"), ("Disabled", "false")], label="Autoplay TTS", value="true" if params["tgwui"]["tgwui_autoplay_tts"] else "false")
+                        show_text = gr.Dropdown(choices=[("Enabled", "true"), ("Disabled", "false")], label="Show Text", value="true" if params["tgwui"]["tgwui_show_text"] else "false")
                         narrator_enabled = gr.Dropdown(choices=[("Enabled", "true"), ("Disabled", "false"), ("Enabled (Silent)", "silent")], label="Narrator enabled", value="true" if params["tgwui"]["tgwui_narrator_enabled"] == "true" else ("silent" if params["tgwui"]["tgwui_narrator_enabled"] == "silent" else "false"))
                         language = gr.Dropdown(value=params["tgwui"]["tgwui_language"], label="Default Language", choices=languages_list)
                     with gr.Row():
                         submit_button = gr.Button("Update Settings")
                         output_message = gr.Textbox(label="Output Message", interactive=False, show_label=False)
                         
-                    submit_button.click(update_settings_tg, inputs=[activate, autoplay, show_text, language, narrator_enabled], outputs=output_message)
+                    submit_button.click(update_settings_tg, inputs=[activate, autoplay, show_text, language, narrator_enabled], outputs=output_message, show_api=False)
 
                 disk_space_page = get_disk_interface()
                 disk_space_page()
@@ -2259,11 +2282,20 @@ if gradio_enabled == True:
 
     if __name__ == "__main__":
         app = alltalk_gradio().queue()
-        app.launch(server_name="0.0.0.0", server_port=params['gradio_port_number'], prevent_thread_lock=True, quiet=True)
+        # Use 127.0.0.1 if 0.0.0.0 causes issues on Windows, or ensure Gradio can reach itself
+        try:
+            app.launch(server_name="0.0.0.0", server_port=params['gradio_port_number'], prevent_thread_lock=True, quiet=True)
+        except ValueError:
+            print(f"[{branding}TTS] Failed to launch on 0.0.0.0, trying 127.0.0.1...")
+            app.launch(server_name="127.0.0.1", server_port=params['gradio_port_number'], prevent_thread_lock=True, quiet=True)
 
     if not running_in_standalone:
         app = alltalk_gradio().queue()
-        app.launch(server_name="0.0.0.0", server_port=params['gradio_port_number'], prevent_thread_lock=True, quiet=True)
+        try:
+            app.launch(server_name="0.0.0.0", server_port=params['gradio_port_number'], prevent_thread_lock=True, quiet=True)
+        except ValueError:
+            print(f"[{branding}TTS] Failed to launch on 0.0.0.0, trying 127.0.0.1...")
+            app.launch(server_name="127.0.0.1", server_port=params['gradio_port_number'], prevent_thread_lock=True, quiet=True)
 
 #########################################
 # START-UP # Final Splash before Gradio #

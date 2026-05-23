@@ -1,0 +1,35 @@
+{
+  "first_start_model": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+  "models": [
+    {
+      "model_name": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+      "files_to_download": [
+        "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base"
+      ]
+    },
+    {
+      "model_name": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+      "files_to_download": [
+        "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+      ]
+    },
+    {
+      "model_name": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "files_to_download": [
+        "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"
+      ]
+    },
+    {
+      "model_name": "Qwen/Qwen3-TTS-12Hz-0.6B-Base",
+      "files_to_download": [
+        "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base"
+      ]
+    },
+    {
+      "model_name": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+      "files_to_download": [
+        "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
+      ]
+    }
+  ]
+}

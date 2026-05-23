@@ -1,0 +1,1 @@
+{"engine_loaded": "xtts", "selected_model": "xtts - xttsv2_2.0.2", "engines_available": [{"name": "xtts", "selected_model": "xtts - xttsv2_2.0.2"}, {"name": "qwen3tts", "selected_model": "qwen3tts - Qwen/Qwen3-TTS-12Hz-1.7B-Base"}]}

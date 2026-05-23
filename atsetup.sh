@@ -127,23 +127,18 @@ webui_menu() {
 }
 
 install_nvidia_textgen() {
-    local requirements_file="system/requirements/requirements_textgen.txt"
-    echo "    Installing Requirements from $requirements_file..."
-    if ! pip install -r "$requirements_file"; then
+    if ! pip install -r system/requirements/requirements_textgen2.txt; then
         echo
-        echo "    There was an error pulling from Github."
+        echo "    There was an error installing additional requirements."
         echo "    Please check the output for details."
         read -p "    Press any key to return to the menu. " -n 1
         echo
         return
     fi
-    echo
-    echo "    Requirements installed successfully."
-    
-    echo "    Installing additional requirements..."
-    if ! pip install -r system/requirements/requirements_textgen2.txt; then
+
+    if ! pip install -r system/requirements/requirements_qwen3tts.txt; then
         echo
-        echo "    There was an error installing additional requirements."
+        echo "    There was an error installing qwen3tts requirements."
         echo "    Please check the output for details."
         read -p "    Press any key to return to the menu. " -n 1
         echo
@@ -396,7 +391,7 @@ install_custom_standalone() {
     echo Installing DeepSpeed...
     pip install deepspeed-0.14.2+cu121torch2.2-cp311-cp311-manylinux_2_24_x86_64.whl
     rm deepspeed-0.14.2+cu121torch2.2-cp311-cp311-manylinux_2_24_x86_64.whl
-    pip install -r system/requirements/requirements_parler.txt
+    pip install -r system/requirements/requirements_qwen3tts.txt
     conda clean --all --force-pkgs-dirs -y
     Create start_environment.sh to run AllTalk
     cat << EOF > start_environment.sh

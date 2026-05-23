@@ -1,0 +1,42 @@
+{
+    "model_details": {
+        "manufacturer_name": "Alibaba Qwen Team",
+        "manufacturer_website": "https://github.com/QwenLM/Qwen2-Audio",
+        "model_description": "Qwen3-TTS is a next-generation text-to-speech engine based on the Qwen architecture, providing high-quality, natural-sounding speech synthesis."
+    },
+    "model_capabilties": {
+        "audio_format": "wav",
+        "deepspeed_capable": true,
+        "generationspeed_capable": true,
+        "languages_capable": true,
+        "lowvram_capable": true,
+        "multimodel_capable": true,
+        "repetitionpenalty_capable": true,
+        "streaming_capable": true,
+        "temperature_capable": true,
+        "multivoice_capable": true,
+        "pitch_capable": true,
+        "windows_capable": true,
+        "linux_capable": true,
+        "mac_capable": true
+    },
+    "settings": {
+        "def_character_voice": "defaultvoice.wav",
+        "def_narrator_voice": "defaultvoice.wav",
+        "deepspeed_enabled": false,
+        "engine_installed": true,
+        "generationspeed_set": 1,
+        "lowvram_enabled": false,
+        "pitch_set": 0,
+        "repetitionpenalty_set": 1.1,
+        "temperature_set": 0.75
+    },
+    "openai_voices": {
+        "alloy": "defaultvoice.wav",
+        "echo": "defaultvoice.wav",
+        "fable": "defaultvoice.wav",
+        "nova": "defaultvoice.wav",
+        "onyx": "defaultvoice.wav",
+        "shimmer": "defaultvoice.wav"
+    }
+}

@@ -1,26 +1,14 @@
 {
-    "engine_loaded": "piper",
-    "selected_model": "piper",
+    "engine_loaded": "qwen3tts",
+    "selected_model": "qwen3tts - Qwen/Qwen3-TTS-12Hz-1.7B-Base",
     "engines_available": [
         {
-            "name": "parler",
-            "selected_model": "parler - parler_tts_mini_v0.1"
-        },
-        {
-            "name": "piper",
-            "selected_model": "piper"
-        },
-        {
-            "name": "vits",
-            "selected_model": "vits - tts_models--en--vctk--vits"
-        },
-        {
             "name": "xtts",
-            "selected_model": "xtts - xttsv2_2.0.3"
+            "selected_model": "xtts - xttsv2_2.0.2"
         },
         {
-            "name": "f5tts",
-            "selected_model": "f5tts - f5tts_v1"
+            "name": "qwen3tts",
+            "selected_model": "qwen3tts - Qwen/Qwen3-TTS-12Hz-1.7B-Base"
         }
     ]
 }

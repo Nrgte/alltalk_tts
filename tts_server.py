@@ -44,6 +44,9 @@ warnings.filterwarnings("ignore", message="1Torch was not compiled with flash at
 # Setup local path #
 ####################
 this_dir = Path(__file__).parent.resolve()  # Set this_dir as the current alltalk_tts folder
+ffmpeg_bin_path = r"E:\Programme2\ffmpeg-8.1.1-full_build-shared\bin"
+os.add_dll_directory(ffmpeg_bin_path)
+os.environ["PATH"] = ffmpeg_bin_path + os.pathsep + os.environ.get("PATH", "")
 
 ####################################################
 # Load params and api_defailts from confignew.json #
@@ -198,7 +201,7 @@ app = FastAPI(lifespan=startup_shutdown)
 # Allow all origins, and set other CORS options
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Set this to the specific origins you want to allow
+    allow_origins=["*", "http://192.168.56.1:8000"],  # Set this to the specific origins you want to allow
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -703,20 +706,34 @@ async def generate_audio(text, voice, language, temperature, repetition_penalty,
         print(f"[{branding}GEN] The selected TTS Engine does not support streaming. To use streaming, please select a TTS")
         print(f"[{branding}GEN] Engine that has streaming capability. You can find the streaming support information for")
         print(f"[{branding}GEN] each TTS Engine in the 'Engine Information' section of the Gradio interface.")
+    
+    start_time = time.time()
     # Get the async generator from the internal function
     response = model_engine.generate_tts(text, voice, language, temperature, repetition_penalty, speed, pitch, output_file, streaming)
     # If streaming, then return the generator as-is, otherwise just exhaust it and return
     if streaming:
         # Return an async generator that yields from the response
         async def stream_response():
+            first_chunk = True
             async for chunk in response:
+                if first_chunk:
+                    end_time = time.time()
+                    duration = end_time - start_time
+                    print(f"[{branding}GEN] First audio chunk generated in {duration:.2f} seconds")
+                    first_chunk = False
                 yield chunk
+            total_end_time = time.time()
+            total_duration = total_end_time - start_time
+            print(f"[{branding}GEN] Streaming generation completed in {total_duration:.2f} seconds")
         return stream_response()
     else:
         # Exhaust the generator and handle any errors
         try:
             async for _ in response:
                 pass
+            end_time = time.time()
+            duration = end_time - start_time
+            print(f"[{branding}GEN] Generation completed in {duration:.2f} seconds")
         except Exception as e:
             print(f"{branding}[GEN] Error during audio generation: {str(e)}")
             raise

@@ -59,4 +59,4 @@ def alltalk_welcome(analytics_enabled=False):
         with gr.Row():
             output = gr.Textbox(label="Output")
             update_btn = gr.Button("Dont show me this screen again!")
-            update_btn.click(fn=modify_config, inputs=None, outputs=output)
+            update_btn.click(fn=modify_config, inputs=None, outputs=output, show_api=False)
