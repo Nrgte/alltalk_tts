@@ -6,9 +6,13 @@ alltalk_environment/*
 system/config/at_github_sha.json
 system/tts_engines/tts_engines.json
 system/tts_engines/tts_engines.backup
+system/tts_engines/omnivoice/omnivoice_local.json
 confignew.json
 diagnostics.log
 local_env.bat
+OMNIVOICE_INTEGRATION_NOTES.md
+OMNIVOICE_SESSION_LOG.md
+OMNIVOICE_TRANSFORMERS5_UPGRADE.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

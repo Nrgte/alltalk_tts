@@ -59,10 +59,10 @@ running_in_docker = False
 # START-UP # Display initial splash screen #
 ############################################
 print(f"[{branding}TTS]\033[94m     _    _ _ \033[1;35m_____     _ _     \033[0m  _____ _____ ____  ")
-print(f"[{branding}TTS]\033[94m    / \  | | |\033[1;35m_   _|_ _| | | __ \033[0m |_   _|_   _/ ___| ")
-print(f"[{branding}TTS]\033[94m   / _ \ | | |\033[1;35m | |/ _` | | |/ / \033[0m   | |   | | \___ \ ")
-print(f"[{branding}TTS]\033[94m  / ___ \| | |\033[1;35m | | (_| | |   <  \033[0m   | |   | |  ___) |")
-print(f"[{branding}TTS]\033[94m /_/   \_\_|_|\033[1;35m |_|\__,_|_|_|\_\ \033[0m   |_|   |_| |____/ ")
+print(f"[{branding}TTS]\033[94m    / \\  | | |\033[1;35m_   _|_ _| | | __ \033[0m |_   _|_   _/ ___| ")
+print(f"[{branding}TTS]\033[94m   / _ \\ | | |\033[1;35m | |/ _` | | |/ / \033[0m   | |   | | \\___ \\ ")
+print(f"[{branding}TTS]\033[94m  / ___ \\| | |\033[1;35m | | (_| | |   <  \033[0m   | |   | |  ___) |")
+print(f"[{branding}TTS]\033[94m /_/   \\_\\_|_|\033[1;35m |_|\\__,_|_|_|\\_\\ \033[0m   |_|   |_| |____/ ")
 print(f"[{branding}TTS]")
 
 
@@ -545,7 +545,7 @@ def check_espeak_ng():
             # If the command returns an error, print the error message
             print(f"[{branding}TTS]")
             print(f"[{branding}TTS] Espeak-ng for Windows\033[91m WAS NOT FOUND. \033[0mYou can install\033[0m")
-            print(f"[{branding}TTS] \033[0mit from this location \033[93m\\alltalk_tts\\system\espeak-ng\\\033[0m")
+            print(f"[{branding}TTS] \033[0mit from this location \033[93m\\alltalk_tts\\system\\espeak-ng\\\033[0m")
             print(f"[{branding}TTS] Then close this command prompt window and open a new")
             print(f"[{branding}TTS] command prompt, before starting {branding}again.")
     elif platform.system() == "Darwin":  # macOS
@@ -2150,8 +2150,8 @@ if gradio_enabled == True:
                         a-zA-Z0-9: ASCII letters and digits
                         .,;:!?: Punctuation characters
                         '": Single and double quotes
-                        \s: Whitespace characters
-                        \-: Hyphen/dash
+                        \\s: Whitespace characters
+                        \\-: Hyphen/dash
                         $: Dollar sign
                         \\u00C0-\\u00FF: Latin characters with diacritics (À-ÿ)
                         \\u0400-\\u04FF: Cyrillic characters

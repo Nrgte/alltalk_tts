@@ -1,0 +1,4 @@
+{
+    "OMNIVOICE_VENV_PYTHON": "C:\\path\\to\\OmniVoice\\.venv\\Scripts\\python.exe",
+    "OMNIVOICE_MODEL_ROOT": "C:\\path\\to\\OmniVoice"
+}

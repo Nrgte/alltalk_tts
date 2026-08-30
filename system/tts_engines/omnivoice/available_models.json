@@ -1,0 +1,11 @@
+{
+  "first_start_model": "k2-fsa/OmniVoice",
+  "models": [
+    {
+      "model_name": "k2-fsa/OmniVoice",
+      "files_to_download": [
+        "https://huggingface.co/k2-fsa/OmniVoice"
+      ]
+    }
+  ]
+}

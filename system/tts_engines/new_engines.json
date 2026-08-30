@@ -7,6 +7,10 @@
         {
             "name": "qwen3tts",
             "selected_model": "qwen3tts - Qwen/Qwen3-TTS-12Hz-1.7B-Base"
+        },
+        {
+            "name": "omnivoice",
+            "selected_model": "omnivoice - k2-fsa/OmniVoice"
         }
     ]
 }
