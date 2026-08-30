@@ -5,8 +5,10 @@ finetune/*
 alltalk_environment/*
 system/config/at_github_sha.json
 system/tts_engines/tts_engines.json
+system/tts_engines/tts_engines.backup
 confignew.json
 diagnostics.log
+local_env.bat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
