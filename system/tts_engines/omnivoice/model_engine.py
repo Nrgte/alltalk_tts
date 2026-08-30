@@ -614,7 +614,9 @@ class tts_class:
         return Path(wavs_files)
 
     def _find_ref_text(self, wav_path):
-        """Look for a transcript of the reference WAV: <stem>.reference.txt then <stem>.txt."""
+        """Look for a transcript of the reference WAV: <stem>.reference.txt, then <stem>.txt,
+        then voices/transcriptions/<stem>.txt (written by transcribe_voices.py via the
+        local faster-whisper server; only the omnivoice engine reads that folder)."""
         base = str(wav_path)
         if base.lower().endswith(".wav"):
             base = base[:-4]
@@ -630,6 +632,18 @@ class tts_class:
                     # ignore those so the worker can auto-transcribe instead.
                 except Exception:
                     pass
+        # Fallback: shared auto-transcriptions in voices/transcriptions/ (same relative
+        # path as the wav, without the .wav extension).
+        try:
+            rel = Path(base).relative_to(self.main_dir / "voices")
+            cand = self.main_dir / "voices" / "transcriptions" / (str(rel).replace(os.sep, "/") + ".txt")
+            if cand.is_file():
+                txt = cand.read_text(encoding="utf-8", errors="replace").strip()
+                if txt:
+                    print(f"[{self.branding}Debug] Using reference transcript from:", str(cand.relative_to(self.main_dir))) if self.debug_tts else None
+                    return txt
+        except (ValueError, OSError):
+            pass
         print(f"[{self.branding}Debug] No reference transcript found for {wav_path.name}; worker will auto-transcribe if needed.") if self.debug_tts else None
         return None
 
