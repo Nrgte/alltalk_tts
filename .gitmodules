@@ -1,0 +1,6 @@
+[submodule "system/requirements/DeepSpeed"]
+	path = system/requirements/DeepSpeed
+	url = https://github.com/deepspeedai/DeepSpeed.git
+[submodule "system/requirements/fairseq"]
+	path = system/requirements/fairseq
+	url = https://github.com/One-sixth/fairseq.git
