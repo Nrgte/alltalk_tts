@@ -154,9 +154,9 @@ default_config = {
     "initial_wait": 2,
     "backoff_factor": 1.2,
     "debug_mode": False,
-    "max_queue_time": 60,  # Maximum time a request can wait in the queue (in seconds)
+    "max_queue_time": 3600,  # Maximum time a request can wait in the queue (in seconds)
     "queue_check_interval": 0.1,  # Time between checks for available instances (in seconds)
-    "tts_request_timeout": 30,  # Timeout for individual TTS requests (in seconds)
+    "tts_request_timeout": 3600,  # Timeout for individual TTS requests (in seconds)
     "text_length_factor": 0.2,  # Increase timeout by 20% per 100 characters
     "concurrent_request_factor": 0.5,  # Increase timeout by 50% per concurrent request
     "diminishing_factor": 0.5,  # Reduce additional time for long-running requests by 50%
@@ -342,7 +342,7 @@ def generate_tts(port, engine_num, text, voice):
             "output_file_timestamp": "true",
             "autoplay": "false",
             "autoplay_volume": "0.8"
-        }, timeout=30)  # Increased timeout for TTS generation
+        }, timeout=3600)  # Increased timeout for TTS generation
         data = response.json()
         if data["status"] == "generate-success":
             return f"http://127.0.0.1:{port}{data['output_file_url']}", f"TTS generated successfully on Engine {engine_num} and Port {port}"
@@ -1604,7 +1604,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     interface = create_gradio_interface()
     # Start the Gradio interface
-    interface.launch(quiet=True, server_port=config['gradio_interface_port'], prevent_thread_lock=True)
+    interface.queue().launch(quiet=True, server_port=config['gradio_interface_port'], prevent_thread_lock=True)
     # Start the API server
     start_api_server()
     initialize_instances()

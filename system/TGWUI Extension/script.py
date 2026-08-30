@@ -318,7 +318,7 @@ def send_and_generate(gen_text, gen_character_voice, gen_rvccharacter_voice, gen
         }
         #print(f"Debug: Generate request param:", data) if params["debug_tts"] else None
         try:
-            response = requests.post(api_url, data=data)
+            response = requests.post(api_url, data=data, timeout=3600)
             response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
             result = response.json()
             if gen_autoplay == "true":

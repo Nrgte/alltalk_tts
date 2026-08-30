@@ -30,6 +30,7 @@ except ImportError:
 #############################################################################################################
 #############################################################################################################
 import soundfile as sf
+import numpy as np
 
 # For Qwen3-TTS, we need the qwen-tts package
 try:
@@ -405,8 +406,18 @@ class tts_class:
                     x_vector_only_mode=True
                 )
 
-            # Save the first generated wav
-            sf.write(output_file, wavs[0], sr)
+            # Get the generated waveform
+            waveform = wavs[0]
+
+            # Improve short sentence handling by adding a small amount of silence at the end
+            # This prevents some players or Gradio from cutting off the last bit of audio
+            if len(text) < 50:
+                # Add 0.3 seconds of silence at the end
+                silence_padding = np.zeros(int(sr * 0.3), dtype=waveform.dtype)
+                waveform = np.concatenate([waveform, silence_padding])
+
+            # Save the generated wav
+            sf.write(output_file, waveform, sr)
             
             end_time = time.time()
             duration = end_time - start_time
