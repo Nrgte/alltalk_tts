@@ -21,7 +21,7 @@
         "mac_capable": true
     },
     "settings": {
-        "def_character_voice": "EL Bella synth.wav",
+        "def_character_voice": "EL_Bella synth.wav",
         "def_narrator_voice": "David_Attenborough CC3.wav",
         "deepspeed_enabled": false,
         "engine_installed": true,
@@ -32,11 +32,11 @@
         "temperature_set": 0.75
     },
     "openai_voices": {
-        "alloy": "EL Bella synth.wav",
-        "echo": "EL Bella synth.wav",
-        "fable": "EL Bella synth.wav",
-        "nova": "EL Bella synth.wav",
+        "alloy": "EL_Bella synth.wav",
+        "echo": "EL_Bella synth.wav",
+        "fable": "EL_Bella synth.wav",
+        "nova": "EL_Bella synth.wav",
         "onyx": "Clint_Eastwood CC3.wav",
-        "shimmer": "EL Bella synth.wav"
+        "shimmer": "EL_Bella synth.wav"
     }
 }
